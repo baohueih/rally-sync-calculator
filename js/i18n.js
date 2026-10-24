@@ -33,6 +33,7 @@
       'sticky.utcClockTitle': '當前遊戲伺服器時間 (UTC)',
       'sticky.utcClockLabel': 'UTC 遊戲時間',
       'sticky.langAriaLabel': '選擇介面語言',
+      'sticky.btnGuide': '📖 隊長指南',
 
       // App Header
       'header.title': 'Kingshot 戰術壓秒集結計算器',
@@ -220,6 +221,7 @@
       's4_2.title': '1.2 戰術分享連結',
       's4_2.hint': '將當前所有設定打包成輕量網址，盟友打開即可同步所有據點、隊長與倒數計時',
       's4_2.btnCopyShareUrl': '🔗 複製此戰術分享連結',
+      's4_2.btnOpenGuide': '📖 隊長操作指南',
 
       // FAQ & Footer
       'faq.sectionTitle': '壓秒集結計算原理說明',
@@ -285,6 +287,7 @@
       'sticky.utcClockTitle': 'Current Game Server Time (UTC)',
       'sticky.utcClockLabel': 'UTC Game Time',
       'sticky.langAriaLabel': 'Select Interface Language',
+      'sticky.btnGuide': '📖 Leader Guide',
 
       // App Header
       'header.title': 'Kingshot Tactical Rally Sync Calculator',
@@ -472,6 +475,7 @@
       's4_2.title': '1.2 Tactical Share Link',
       's4_2.hint': 'Package all current settings into a compact URL so teammates can sync target strongholds, leaders, and live countdowns',
       's4_2.btnCopyShareUrl': '🔗 Copy Tactical Share Link',
+      's4_2.btnOpenGuide': '📖 Rally Leader Guide',
 
       // FAQ & Footer
       'faq.sectionTitle': 'How Rally Sync Calculation Works',

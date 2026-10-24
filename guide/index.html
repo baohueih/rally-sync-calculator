@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="theme-color" content="#0b0f19">
+  <title data-i18n="pageTitle">Kingshot 集結隊長作戰指南 | Rally Leader Guide</title>
+  <meta name="description" content="Kingshot 集結隊長操作指南：行軍時間、部隊實力與即時伺服器時鐘確認。">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="guide-container">
+
+    <!-- Header & Top Navigation -->
+    <header class="guide-header">
+      <div class="top-bar">
+        <a href="../index.html" class="btn-nav-timer" data-i18n="btnToTimer">⏱️ 前往壓秒計時器</a>
+
+        <div class="lang-selector-group">
+          <label for="guideLangSelect" class="sr-only" data-i18n="langLabel">語言 / Language</label>
+          <select id="guideLangSelect" class="lang-select">
+            <option value="zh-Hant">繁體中文</option>
+            <option value="zh-Hans">简体中文</option>
+            <option value="en">English</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="ru">Русский</option>
+            <option value="es">Español</option>
+            <option value="de">Deutsch</option>
+            <option value="fr">Français</option>
+            <option value="vi">Tiếng Việt</option>
+          </select>
+        </div>
+      </div>
+
+      <span class="header-tag" data-i18n="headerTag">Kingshot 作戰指南</span>
+      <h1 class="guide-title" data-i18n="headerTitle">集結隊長操作與數據確認</h1>
+      <p class="guide-subtitle" data-i18n="headerSubtitle">快速確認集結發起步驟、行軍時間、實力數值與遊戲即時時間</p>
+    </header>
+
+    <!-- Step 1: Open Rally Menu -->
+    <section class="step-card">
+      <div class="step-card-header">
+        <span class="step-badge badge-red" data-i18n="step1Badge">步驟 1</span>
+        <h2 class="step-title" data-i18n="step1Title">開啟集結介面</h2>
+        <p class="step-desc" data-i18n="step1Desc">點擊目標據點，按下「集結」並設定集結等待時間（標準為 5 分鐘，以作戰指示為準）。</p>
+      </div>
+
+      <div class="callout-alert" data-i18n="step1Hint">
+        ⚠️ 請提前 15～30 秒打開此介面，分秒不差準時按下發起！
+      </div>
+
+      <div class="image-container">
+        <img src="images/1_open-rally.jpg" alt="開啟集結操作介面截圖" class="zoomable-img" data-i18n-alt="step1ImgAlt" loading="lazy">
+        <span class="zoom-hint" data-i18n="clickToZoom">🔍 點擊圖片放大檢視</span>
+      </div>
+    </section>
+
+    <!-- Step 2: Hero Deploy & 3 Key Metrics -->
+    <section class="step-card">
+      <div class="step-card-header">
+        <span class="step-badge badge-cyan" data-i18n="step2Badge">步驟 2</span>
+        <h2 class="step-title" data-i18n="step2Title">出征隊伍關鍵資訊確認</h2>
+        <p class="step-desc" data-i18n="step2Desc">進入隊伍配置畫面時，請務必確認並回報以下 3 大核心作戰數據：</p>
+      </div>
+
+      <div class="metrics-list">
+        <!-- 1. March Time -->
+        <article class="metric-item item-march">
+          <div class="metric-header">
+            <div class="metric-title-group">
+              <span class="metric-icon">⏱️</span>
+              <h3 class="metric-title" data-i18n="item1Title">行軍時間 (March Time)</h3>
+            </div>
+            <span class="metric-tag tag-cyan" data-i18n="item1Badge">1. 行軍時間</span>
+          </div>
+          <p class="metric-desc" data-i18n="item1Desc">前往目標據點的單程行軍所需時間（分 : 秒）。</p>
+          <div class="metric-note" data-i18n-html="item1Note">
+            ⚠️ 回報給指揮官的時間必須是<strong>不開行軍加速</strong>的原始時間。出征後<strong>嚴禁誤按加速</strong>，確保全體同時撞擊！
+          </div>
+        </article>
+
+        <!-- 2. Power Value -->
+        <article class="metric-item item-power">
+          <div class="metric-header">
+            <div class="metric-title-group">
+              <span class="metric-icon">⚡</span>
+              <h3 class="metric-title" data-i18n="item2Title">實力數值 (Power Value)</h3>
+            </div>
+            <span class="metric-tag tag-amber" data-i18n="item2Badge">2. 實力數值</span>
+          </div>
+          <p class="metric-desc" data-i18n="item2Desc">當前出征隊伍的集結戰鬥力（例如：120M、95M、80M 等）。</p>
+          <div class="metric-note" data-i18n-html="item2Note">
+            💡 提供給作戰指揮官，用於排序主力集結、副集結與進攻撞擊順序。
+          </div>
+        </article>
+
+        <!-- 3. Live Clock -->
+        <article class="metric-item item-clock">
+          <div class="metric-header">
+            <div class="metric-title-group">
+              <span class="metric-icon">🕒</span>
+              <h3 class="metric-title" data-i18n="item3Title">即時時鐘 (Live Clock)</h3>
+            </div>
+            <span class="metric-tag tag-green" data-i18n="item3Badge">3. 即時時鐘</span>
+          </div>
+          <p class="metric-desc" data-i18n="item3Desc">遊戲右上角顯示的伺服器 UTC 即時時間。</p>
+          <div class="metric-note" data-i18n-html="item3Note">
+            ⏰ 所有壓秒集結指令皆嚴格以該時鐘為基準。請確保自身秒數同步，到秒準時按下！
+          </div>
+        </article>
+      </div>
+
+      <div class="image-container">
+        <img src="images/2_hero-deploy.jpg" alt="出征隊伍配置畫面與核心資訊標示" class="zoomable-img" data-i18n-alt="step2ImgAlt" loading="lazy">
+        <span class="zoom-hint" data-i18n="clickToZoom">🔍 點擊圖片放大檢視</span>
+      </div>
+    </section>
+
+    <!-- Checklist Card -->
+    <section class="checklist-card">
+      <h3 class="checklist-title" data-i18n="checklistTitle">📋 集結隊長必備 4 大黃金守則</h3>
+      <ul class="checklist-items">
+        <li class="checklist-item" data-i18n="rule1">1. 回報「原始不加速」行軍時間給作戰指揮官</li>
+        <li class="checklist-item" data-i18n="rule2">2. 回報該隊伍「實力數值 (Power)」</li>
+        <li class="checklist-item" data-i18n="rule3">3. 提前 15~30 秒進入集結介面，對齊 UTC 時間分秒不差準時按下</li>
+        <li class="checklist-item" data-i18n="rule4">4. 行軍途中絕不可使用加速，以免破壞全盟同步撞擊效果</li>
+      </ul>
+    </section>
+
+    <!-- Footer -->
+    <footer class="guide-footer">
+      <p data-i18n="footerText">Kingshot 集結隊長作戰指南 · 供聯盟集結隊伍快速查閱</p>
+      <p class="footer-copyright" data-i18n="copyright">© [#1914][ACE]Bao咔咔 · Kingshot Rally Sync Timer</p>
+    </footer>
+
+  </div>
+
+  <!-- Full-screen Lightbox Modal -->
+  <div class="lightbox-modal" id="lightboxModal" style="display: none;">
+    <div class="lightbox-img-wrapper">
+      <button class="lightbox-close" id="lightboxClose" aria-label="Close image">&times;</button>
+      <img src="" alt="" class="lightbox-img" id="lightboxImg">
+    </div>
+  </div>
+
+  <script src="js/guide.js"></script>
+</body>
+</html>
