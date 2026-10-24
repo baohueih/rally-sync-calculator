@@ -415,11 +415,60 @@
   function loadStateFromUrlHash() {
     if (!window.location.hash || window.location.hash.length < 5) return false;
     try {
-      const params = new URLSearchParams(window.location.hash.substring(1));
+      const hashStr = window.location.hash.substring(1);
+      const params = new URLSearchParams(hashStr);
       const dataParam = params.get('data');
       if (dataParam) {
-        const decoded = decodeURIComponent(escape(atob(dataParam)));
+        // Support URL-safe base64 (- to +, _ to /, and pad with =)
+        let base64 = dataParam.replace(/-/g, '+').replace(/_/g, '/');
+        while (base64.length % 4 !== 0) {
+          base64 += '=';
+        }
+        const decoded = decodeURIComponent(escape(atob(base64)));
         const parsed = JSON.parse(decoded);
+
+        // Format A: New Compact Array Format (v2)
+        if (Array.isArray(parsed) && parsed[0] === 2) {
+          const [, modeNum, targetTime, globalWaitTime, arrivalInterval, shNames, shIdx, leadersData] = parsed;
+          const strongholds = (Array.isArray(shNames) && shNames.length > 0)
+            ? shNames.map((name, i) => ({ id: `sh_${i + 1}`, name: String(name || `據點 ${i + 1}`) }))
+            : getDefaultStrongholds();
+
+          const selectedStrongholdId = strongholds[shIdx] ? strongholds[shIdx].id : strongholds[0].id;
+
+          const leaders = Array.isArray(leadersData) ? leadersData.map((ldr, i) => {
+            const [name, enabled, waitTime, power, marchList] = ldr;
+            const marches = {};
+            strongholds.forEach((sh, shIndex) => {
+              marches[sh.id] = (Array.isArray(marchList) && marchList[shIndex] !== undefined)
+                ? Number(marchList[shIndex])
+                : 0;
+            });
+            return {
+              id: `leader_${i + 1}`,
+              name: String(name || `隊長${String.fromCharCode(65 + i)}`),
+              enabled: Boolean(enabled),
+              waitTime: Number(waitTime) || globalWaitTime || 300,
+              power: String(power || ''),
+              marches
+            };
+          }) : [];
+
+          state = {
+            ...state,
+            calcMode: modeNum === 1 ? 'first_launch' : 'target_hit',
+            targetTime: targetTime || '22:50:00',
+            globalWaitTime: Number(globalWaitTime) || 300,
+            arrivalInterval: Math.max(0, Number(arrivalInterval) || 0),
+            strongholds,
+            selectedStrongholdId,
+            leaders
+          };
+          normalizeStrongholdsAndLeaders();
+          return true;
+        }
+
+        // Format B: Legacy JSON Format (Backward Compatibility)
         if (parsed && Array.isArray(parsed.leaders)) {
           state = { ...state, ...parsed };
           normalizeStrongholdsAndLeaders();
@@ -433,18 +482,39 @@
   }
 
   function getShareableUrl() {
-    const exportState = {
-      calcMode: state.calcMode,
-      targetTime: state.targetTime,
-      globalWaitTime: state.globalWaitTime,
-      arrivalInterval: state.arrivalInterval,
-      strongholds: state.strongholds,
-      selectedStrongholdId: state.selectedStrongholdId,
-      leaders: state.leaders
-    };
-    const b64 = btoa(unescape(encodeURIComponent(JSON.stringify(exportState))));
+    // Compact Array Format (v2):
+    // [2, calcMode(0:target_hit, 1:first_launch), targetTime, globalWaitTime, arrivalInterval, strongholdNames, selectedIdx, leaders]
+    const shNames = state.strongholds.map((sh) => sh.name);
+    const selectedIdx = Math.max(0, state.strongholds.findIndex((sh) => sh.id === state.selectedStrongholdId));
+
+    const leadersData = state.leaders.map((ldr) => {
+      const marchList = state.strongholds.map((sh) => ldr.marches[sh.id] || 0);
+      return [
+        ldr.name,
+        ldr.enabled ? 1 : 0,
+        ldr.waitTime,
+        ldr.power || '',
+        marchList
+      ];
+    });
+
+    const compactPayload = [
+      2,
+      state.calcMode === 'first_launch' ? 1 : 0,
+      state.targetTime,
+      state.globalWaitTime,
+      state.arrivalInterval || 0,
+      shNames,
+      selectedIdx,
+      leadersData
+    ];
+
+    const jsonStr = JSON.stringify(compactPayload);
+    // Base64 encode and convert to URL-safe base64 without padding
+    const rawB64 = btoa(unescape(encodeURIComponent(jsonStr)));
+    const urlSafeB64 = rawB64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
     const baseUrl = window.location.origin + window.location.pathname;
-    return `${baseUrl}#data=${encodeURIComponent(b64)}`;
+    return `${baseUrl}#data=${urlSafeB64}`;
   }
 
   function loadSavedPresets() {
