@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kingshot 據點戰集結壓秒計算器 | Rally Sync Timer</title>
+  <meta name="description" content="專為 Kingshot 玩家與聯盟幹部設計的壓秒集結計時器，精準計算發起集結時間，實現多隊同時到達據點連續轟炸。">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
+</head>
+<body>
+  <!-- Sticky Top Real-time Clock & Language Bar -->
+  <aside class="sticky-clock-bar" id="stickyClockBar" data-i18n-aria-label="sticky.ariaLabel" aria-label="即時作戰時鐘">
+    <div class="sticky-clock-inner">
+      <div class="sticky-brand">
+        <span class="sticky-logo">🎯</span>
+        <span class="sticky-title" data-i18n="sticky.brandTitle">Kingshot 壓秒</span>
+      </div>
+
+      <div class="sticky-clocks-group">
+        <!-- UTC Clock -->
+        <div class="clock-chip utc-clock" data-i18n-title="sticky.utcClockTitle" title="當前遊戲伺服器時間 (UTC)">
+          <div class="clock-chip-header">
+            <span class="live-dot"></span>
+            <span class="clock-chip-label" data-i18n="sticky.utcClockLabel">UTC 遊戲時間</span>
+          </div>
+          <div class="clock-chip-main">
+            <span class="clock-chip-time" id="currentUtcTime">--:--:--</span>
+            <span class="clock-chip-date" id="currentUtcDate">----/--/-- UTC</span>
+          </div>
+        </div>
+
+        <!-- Language Selector -->
+        <div class="lang-switch-chip">
+          <span class="lang-icon" aria-hidden="true">🌐</span>
+          <select id="langSelect" class="lang-select" data-i18n-aria-label="sticky.langAriaLabel" aria-label="選擇介面語言">
+            <option value="zh-Hant" selected>繁體中文</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-icon">🎯</div>
+        <div>
+          <h1 class="app-title" data-i18n="header.title">Kingshot 戰術壓秒集結計算器</h1>
+          <p class="app-subtitle" data-i18n="header.subtitle">精準同步到達時間 · 連續轟炸據點</p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Grid -->
+    <main class="main-content">
+      <!-- =================================================================
+           1. 戰術預設組 (瀏覽器儲存 & 清除所有資料)
+           ================================================================= -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="section-title">
+              <span class="step-num-badge">1</span>
+              <span data-i18n="s4.title">戰術預設組</span>
+            </h2>
+            <p class="section-desc" data-i18n="s4.desc">儲存或切換常用戰術配置，所有資料自動保存在瀏覽器本機。</p>
+          </div>
+          <div class="preset-header-actions">
+            <span class="badge" data-i18n="s4.badge">瀏覽器自動儲存</span>
+            <button type="button" class="btn btn-danger btn-sm" id="btnClearAllData" data-i18n="s4.btnClearAllData" data-i18n-title="s4.btnClearAllDataTitle" title="清除所有據點、隊長與預設組資料">
+              🗑️ 清除所有資料
+            </button>
+          </div>
+        </div>
+        <div class="preset-controls">
+          <div class="save-preset-input">
+            <input type="text" id="presetNameInput" class="form-input" data-i18n-placeholder="s4.inputPlaceholder" placeholder="王城主攻組、西邊炮台配置">
+            <button type="button" class="btn btn-secondary" id="btnSavePreset" data-i18n="s4.btnSave">💾 儲存當前配置為預設</button>
+          </div>
+          <div class="saved-presets-list" id="savedPresetsList">
+            <!-- Render saved presets -->
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================
+           2. 參數輸入 (據點管理 & 隊長行軍時間設定)
+           ================================================================= -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="section-title">
+              <span class="step-num-badge">2</span>
+              <span data-i18n="s1.title">參數輸入</span>
+            </h2>
+            <p class="section-desc" data-i18n="s1.desc">先建立據點名單，並輸入各隊長前往各據點的單程行軍時間。</p>
+          </div>
+        </div>
+
+        <!-- 2.1 新增 / 刪除 / 命名據點 -->
+        <div class="sub-section" id="strongholdManageSection">
+          <div class="sub-section-header">
+            <div class="sub-title-group">
+              <h3 class="sub-section-title" data-i18n="s1_1.title">2.1 新增 / 命名 / 刪除據點</h3>
+              <span class="sub-section-hint" data-i18n="s1_1.hint">直接修改名稱或增刪據點（下方 3.1 再選擇要攻打哪個據點）</span>
+            </div>
+          </div>
+          <div class="stronghold-config-list" id="strongholdConfigList">
+            <!-- Dynamically rendered stronghold editable items & add button -->
+          </div>
+        </div>
+
+        <hr class="sub-section-divider">
+
+        <!-- 2.2 新增 / 刪除 / 命名隊長 & 各據點行軍時間 -->
+        <div class="sub-section" id="leaderManageSection">
+          <div class="sub-section-header">
+            <div class="sub-title-group">
+              <h3 class="sub-section-title">
+                <span data-i18n="s1_2.title">2.2 隊長名單與各據點行軍時間</span>
+                <span class="counter-badge" id="leaderCountBadge">0 隊</span>
+              </h3>
+              <span class="sub-section-hint" data-i18n="s1_2.hint">勾選參戰隊長，並填寫到各個據點的行軍時間（分 : 秒）</span>
+            </div>
+            <div class="roster-actions">
+              <button type="button" class="btn btn-secondary btn-sm" id="btnBatchImport" data-i18n="s1_2.btnBatchImport">
+                📋 批次匯入
+              </button>
+            </div>
+          </div>
+
+          <!-- Select All Toolbar -->
+          <div class="roster-toolbar" id="rosterToolbar">
+            <label class="roster-select-all" for="checkAllLeaders">
+              <input type="checkbox" id="checkAllLeaders" checked data-i18n-title="s1_2.selectAllTitle" title="全選 / 取消全選參戰隊伍">
+              <span data-i18n="s1_2.selectAllText">全選所有隊長參戰（未勾選者將暫時排除於作戰計算外）</span>
+            </label>
+          </div>
+
+          <!-- Leader Input Cards Container -->
+          <div class="roster-cards-container" id="rosterTbody">
+            <!-- Dynamically populated leader input cards -->
+          </div>
+
+          <!-- Empty state placeholder -->
+          <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-icon">🛡️</div>
+            <h3 data-i18n="s1_2.emptyTitle">目前尚無集結隊伍</h3>
+            <p data-i18n="s1_2.emptyDesc">點擊下方「新增隊長」按鈕，或載入預設範例隊伍。</p>
+            <button type="button" class="btn btn-secondary" id="btnLoadExample" data-i18n="s1_2.btnLoadExample">載入預設範例 (隊長A、隊長B)</button>
+          </div>
+
+          <!-- Add Leader Button (placed directly below leader cards) -->
+          <button type="button" class="leader-card leader-add-card-btn" id="btnAddLeader">
+            <span>＋</span>
+            <span data-i18n="s1_2.btnAddLeader">新增隊長</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- =================================================================
+           3. 作戰設定 (目標據點、計時模式、全局等待、抵達間隔、時間控制面板)
+           ================================================================= -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="section-title">
+              <span class="step-num-badge">3</span>
+              <span data-i18n="s2.title">作戰設定</span>
+            </h2>
+            <p class="section-desc" data-i18n="s2.desc">選擇本次要前往攻打的據點、計時模式與目標時間。</p>
+          </div>
+        </div>
+
+        <!-- 3.1 選擇前往哪個據點 -->
+        <div class="sub-section">
+          <label class="sub-section-title" data-i18n="s2_1.title">3.1 選擇前往哪個據點</label>
+          <div class="stronghold-tabs" id="strongholdTabs" role="tablist" data-i18n-aria-label="s2_1.tabsAria" aria-label="目標據點選擇">
+            <!-- Dynamically rendered stronghold selector pills -->
+          </div>
+        </div>
+
+        <!-- 3.2 選擇作戰計時模式 -->
+        <div class="sub-section">
+          <label class="sub-section-title" data-i18n="s2_2.title">3.2 選擇作戰計時模式</label>
+          <div class="calc-mode-switch">
+            <button type="button" class="mode-btn active" id="btnModeTarget" data-mode="target_hit" data-i18n="s2_2.modeTargetHit">
+              🎯 全部抵達撞擊時間
+            </button>
+            <button type="button" class="mode-btn" id="btnModeFirst" data-mode="first_launch" data-i18n="s2_2.modeFirstLaunch">
+              🚀 第一隊發起集結時間
+            </button>
+          </div>
+        </div>
+
+        <!-- 3.3 選擇全局集結等待時間 -->
+        <div class="sub-section">
+          <label class="sub-section-title" for="globalWaitTime">
+            <span data-i18n="s2_3.title">3.3 選擇全局集結等待時間</span>
+            <span data-i18n-title="s2_3.tooltip" title="發起集結後等待隊員進組的時間，Kingshot 常用 5 分鐘">ℹ️</span>
+          </label>
+          <select id="globalWaitTime" class="form-select">
+            <option value="60" data-i18n="s2_3.opt1m">1 分鐘 (快速集結)</option>
+            <option value="180" data-i18n="s2_3.opt3m">3 分鐘</option>
+            <option value="300" selected data-i18n="s2_3.opt5m">5 分鐘 (標準)</option>
+            <option value="600" data-i18n="s2_3.opt10m">10 分鐘</option>
+            <option value="900" data-i18n="s2_3.opt15m">15 分鐘</option>
+          </select>
+        </div>
+
+        <!-- 3.4 隊伍抵達時間間隔 -->
+        <div class="sub-section">
+          <label class="sub-section-title" for="arrivalInterval">
+            <span data-i18n="s2_4_interval.title">3.4 隊伍抵達時間間隔</span>
+            <span data-i18n-title="s2_4_interval.tooltip" title="設定各隊伍依序抵達據點的時間差（0 秒代表全部隊伍同一時間撞擊）">ℹ️</span>
+          </label>
+          <div class="interval-input-row">
+            <input type="number" id="arrivalInterval" class="form-input interval-number-input" min="0" max="600" value="0" inputmode="numeric">
+            <span class="interval-unit" data-i18n="s2_4_interval.unitSec">秒</span>
+          </div>
+        </div>
+
+        <!-- 3.5 時間控制面板（包含快捷設定） -->
+        <div class="sub-section">
+          <label class="sub-section-title" id="targetTimeLabel">3.5 時間控制面板：目標撞擊時間 (UTC)</label>
+
+          <div class="time-touch-picker">
+            <!-- Hour Stepper -->
+            <div class="stepper-col">
+              <button type="button" class="btn-step-arrow btn-up" data-field="hour" data-delta="1" data-i18n-title="s2_4.hourUpTitle" title="小時 +1">▲</button>
+              <input type="number" id="targetHour" min="0" max="23" class="stepper-input" value="22" inputmode="numeric" placeholder="22">
+              <button type="button" class="btn-step-arrow btn-down" data-field="hour" data-delta="-1" data-i18n-title="s2_4.hourDownTitle" title="小時 -1">▼</button>
+              <span class="stepper-label" data-i18n="s2_4.hourLabel">時</span>
+            </div>
+
+            <span class="stepper-sep">:</span>
+
+            <!-- Minute Stepper -->
+            <div class="stepper-col">
+              <button type="button" class="btn-step-arrow btn-up" data-field="minute" data-delta="1" data-i18n-title="s2_4.minUpTitle" title="分鐘 +1">▲</button>
+              <input type="number" id="targetMinute" min="0" max="59" class="stepper-input" value="50" inputmode="numeric" placeholder="50">
+              <button type="button" class="btn-step-arrow btn-down" data-field="minute" data-delta="-1" data-i18n-title="s2_4.minDownTitle" title="分鐘 -1">▼</button>
+              <span class="stepper-label" data-i18n="s2_4.minLabel">分</span>
+            </div>
+
+            <span class="stepper-sep">:</span>
+
+            <!-- Second Stepper -->
+            <div class="stepper-col">
+              <button type="button" class="btn-step-arrow btn-up" data-field="second" data-delta="1" data-i18n-title="s2_4.secUpTitle" title="秒數 +1">▲</button>
+              <input type="number" id="targetSecond" min="0" max="59" class="stepper-input" value="00" inputmode="numeric" placeholder="00">
+              <button type="button" class="btn-step-arrow btn-down" data-field="second" data-delta="-1" data-i18n-title="s2_4.secDownTitle" title="秒數 -1">▼</button>
+              <span class="stepper-label" data-i18n="s2_4.secLabel">秒</span>
+            </div>
+
+            <div class="stepper-tz-wrapper">
+              <span class="tz-pill" id="stepperTzPill">UTC</span>
+            </div>
+          </div>
+
+          <!-- Quick Time Adjusters -->
+          <div class="quick-adjust-bar">
+            <span class="quick-label" data-i18n="s2_4.quickLabel">⚡ 快捷設定：</span>
+            <div class="quick-buttons">
+              <button type="button" class="btn btn-pill" id="btnSetCurrentUtc" data-i18n="s2_4.btnResetUtc" data-i18n-title="s2_4.btnResetUtcTitle" title="重設為當前 UTC 遊戲時間">🔄 重設為目前時間</button>
+              <button type="button" class="btn btn-pill" data-offset="120" data-i18n="s2_4.quickPlus2m">當前UTC+2分</button>
+              <button type="button" class="btn btn-pill" data-offset="180" data-i18n="s2_4.quickPlus3m">當前UTC+3分</button>
+              <button type="button" class="btn btn-pill" data-offset="300" data-i18n="s2_4.quickPlus5m">當前UTC +5分</button>
+              <button type="button" class="btn btn-pill" data-offset="600" data-i18n="s2_4.quickPlus10m">當前UTC +10分</button>
+              <button type="button" class="btn btn-pill" data-offset="900" data-i18n="s2_4.quickPlus15m">當前UTC +15分</button>
+              <button type="button" class="btn btn-pill" id="btnNextRound5" data-i18n="s2_4.quickNext5m">下一個5分整點</button>
+              <button type="button" class="btn btn-pill" id="btnNextRound10" data-i18n="s2_4.quickNext10m">下一個10分整點</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================
+           4. 作戰指示 (盟頻作戰發布廣播)
+           ================================================================= -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="section-title">
+              <span class="step-num-badge">4</span>
+              <span data-i18n="s3_orders.title">作戰指示</span>
+            </h2>
+            <p class="section-desc" data-i18n="s3_orders.desc">一鍵複製盟頻作戰發布廣播指令與戰術分享連結。</p>
+          </div>
+        </div>
+
+        <!-- 4.1 盟頻作戰發布廣播 -->
+        <div class="sub-section">
+          <div class="sub-section-header">
+            <h3 class="sub-section-title" data-i18n="s3_2.title">4.1 盟頻作戰發布廣播 (一鍵複製)</h3>
+          </div>
+
+          <div class="export-box-wrapper">
+            <textarea id="exportTextarea" class="export-textarea" readonly rows="6"></textarea>
+            <div class="export-actions">
+              <button type="button" class="btn btn-success btn-lg" id="btnCopyExport" data-i18n="s3_2.btnCopyExport">
+                📋 複製集結作戰指令
+              </button>
+              <button type="button" class="btn btn-secondary" id="btnCopyShareUrl" data-i18n="s3_2.btnCopyShareUrl">
+                🔗 複製此戰術分享連結
+              </button>
+              <span class="copy-feedback" id="copyFeedback" data-i18n="feedback.copied">已複製到剪貼簿！</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- =================================================================
+           5. 即時資訊 (總覽橫幅 & 每個隊長的時間資訊)
+           ================================================================= -->
+      <section class="card">
+        <div class="card-header">
+          <div>
+            <h2 class="section-title">
+              <span class="step-num-badge">5</span>
+              <span data-i18n="s3.title">即時資訊</span>
+            </h2>
+            <p class="section-desc" data-i18n="s3.desc">即時計算各隊長發起集結時間與倒數狀態。</p>
+          </div>
+        </div>
+
+        <!-- Target Confirmation Summary Banner -->
+        <div class="target-summary-banner">
+          <div class="summary-card">
+            <span class="summary-title" id="summaryCard1Title">🎯 目標撞擊時間 (UTC)</span>
+            <div class="summary-val-row">
+              <span class="summary-huge text-cyan" id="summaryTargetUtc">22:50:00 UTC</span>
+              <span class="summary-date" id="summaryCard1Sub">全部隊伍準時撞擊</span>
+            </div>
+          </div>
+          <div class="summary-card">
+            <span class="summary-title" id="summaryCard2Title">🚀 首隊發起時間 (UTC)</span>
+            <div class="summary-val-row">
+              <span class="summary-huge text-gold" id="summaryTargetSecondary">--:--:--</span>
+              <span class="summary-date" id="summaryTargetSecondarySub">首發隊伍準時發起</span>
+            </div>
+          </div>
+          <div class="summary-card">
+            <span class="summary-title" id="summaryCard3Title">⏳ 距離撞擊剩餘時間</span>
+            <div class="summary-val-row">
+              <span class="summary-huge text-green" id="summaryTargetCountdown">--:--:--</span>
+              <span class="summary-date" id="summaryTargetStatus">等待中</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5.1 每個隊長的時間資訊 -->
+        <div class="sub-section">
+          <div class="sub-section-header">
+            <h3 class="sub-section-title" data-i18n="s3_1.title">5.1 各隊長發起與行軍時間資訊</h3>
+            <div class="roster-toolbar-meta">
+              <span class="roster-meta-pill meta-stronghold" id="metaStrongholdPreview">🏰 攻打據點：據點 1</span>
+              <span class="roster-meta-pill" id="metaActiveCount">-- 隊參戰</span>
+              <span class="roster-meta-pill meta-hit" id="metaHitPreview">共同撞擊：--:--:-- UTC</span>
+            </div>
+          </div>
+
+          <div class="leader-output-list" id="leaderOutputList">
+            <!-- Dynamically populated leader tactical output cards -->
+          </div>
+        </div>
+      </section>
+
+      <!-- How it Works & FAQ Section -->
+      <section class="card">
+        <div class="card-header">
+          <h2 class="section-title">
+            <span>💡</span>
+            <span data-i18n="faq.sectionTitle">壓秒集結計算原理說明</span>
+          </h2>
+        </div>
+        <div>
+          <div class="formula-box">
+            <div class="formula-title" data-i18n="faq.formulaTitle">📐 計算公式：</div>
+            <code data-i18n="faq.formula1">【發起集結時間】=【目標到達時間】−【行軍時間】−【集結等待時間】</code><br>
+            <code data-i18n="faq.formula2">【集結出發時間】=【發起集結時間】+【集結等待時間】=【目標到達時間】−【行軍時間】</code>
+          </div>
+          <div class="faq-grid">
+            <div class="faq-item">
+              <h4 data-i18n="faq.q1Title">🎯 什麼是壓秒集結？</h4>
+              <p data-i18n="faq.q1Desc">在 Kingshot 的據點戰中，防守方通常會有駐軍支援。透過同步多個集結的撞擊時間（例如前後差在 1~2 秒內），可連續打擊目標，不給敵方補兵與治療的時間，達到最大化傷亡效果。</p>
+            </div>
+            <div class="faq-item">
+              <h4 data-i18n="faq.q2Title">⏰ 行軍時間如何取得？</h4>
+              <p data-i18n="faq.q2Desc">隊長點擊目標據點，按下「攻擊」或「集結」預覽畫面，即可查看該隊伍單程行軍時間（幾分幾秒）。請隊長提供不開加速狀態下的時間，並確認行軍過程中不要誤點加速。</p>
+            </div>
+            <div class="faq-item">
+              <h4 data-i18n="faq.q3Title">⏰ 如何快速同步時間？</h4>
+              <p data-i18n="faq.q3Desc">點擊「重設為目前時間」即可將目標時間對齊目前 UTC 伺服器時間，再搭配快捷微調按鈕或上下箭頭，即可在數秒內迅速定案撞擊時間。</p>
+            </div>
+            <div class="faq-item">
+              <h4 data-i18n="faq.q4Title">🌐 如何放到 GitHub Pages？</h4>
+              <p data-i18n="faq.q4Desc">本工具為純靜態網頁（HTML/CSS/JS），只需將專案推送至 GitHub Repository，在倉庫的 Settings &gt; Pages 中將 Source 設定為 main 分支根目錄即可免伺服器永久免費運行。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p data-i18n="footer.text">Kingshot Rally Sync Timer · 純前端架構 · 資料保存在本機 · 支援 GitHub Pages 部署</p>
+      <p class="footer-copyright">© [#1914][ACE]Bao咔咔</p>
+    </footer>
+  </div>
+
+  <!-- Batch Import Modal -->
+  <div class="modal-overlay" id="batchModal" style="display: none;">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 data-i18n="modal.batchTitle">📋 批次新增 / 快速貼上隊長名單</h3>
+        <button class="modal-close" id="btnCloseBatchModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc" data-i18n-html="modal.batchDescHtml">
+          每行一位隊長，行軍時間將匯入至<strong>目前選中的目標據點</strong>（或依序對應多個據點）：<br>
+          <code>隊長名稱 行軍秒數</code> (例: <code>隊長A 20</code>)<br>
+          <code>隊長名稱 分:秒</code> (例: <code>隊長B 1:15</code>)<br>
+          <code>隊長名稱 據點1分:秒 據點2分:秒 ...</code> (例: <code>隊長C 0:20 0:45 1:10</code>)
+        </p>
+        <textarea id="batchTextarea" class="form-input batch-textarea" rows="7" data-i18n-placeholder="modal.batchPlaceholder" placeholder="隊長A 20&#10;隊長B 40&#10;隊長C 1:15&#10;隊長D 0:35"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelBatch" data-i18n="modal.btnCancel">取消</button>
+        <button class="btn btn-primary" id="btnSubmitBatch" data-i18n="modal.btnSubmit">確認匯入</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clear All Data Modal -->
+  <div class="modal-overlay" id="clearDataModal" style="display: none;">
+    <div class="modal-box modal-box-sm">
+      <div class="modal-header">
+        <h3 data-i18n="modal.clearTitle">🗑️ 清除資料確認</h3>
+        <button class="modal-close" id="btnCloseClearModal">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc" data-i18n="modal.clearDesc">請勾選要清除的資料項目：</p>
+        <div class="clear-options-list">
+          <label class="clear-option-item">
+            <input type="checkbox" id="clearOptStrongholds" checked>
+            <span data-i18n="modal.clearOptStrongholds">目前據點（還原為預設據點）</span>
+          </label>
+          <label class="clear-option-item">
+            <input type="checkbox" id="clearOptLeaders" checked>
+            <span data-i18n="modal.clearOptLeaders">所有隊長</span>
+          </label>
+          <label class="clear-option-item">
+            <input type="checkbox" id="clearOptPresets">
+            <span data-i18n="modal.clearOptPresets">已儲存的戰術預設組</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="btnCancelClear" data-i18n="modal.btnCancel">取消</button>
+        <button class="btn btn-danger" id="btnSubmitClear" data-i18n="modal.btnConfirmClear">確認清除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/i18n.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
